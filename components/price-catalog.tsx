@@ -1,0 +1,266 @@
+"use client"
+
+import { useState, useCallback, useEffect } from "react"
+import Image from "next/image"
+import { X, ZoomIn, ImageIcon } from "lucide-react"
+import { WhatsAppPicker } from "@/components/whatsapp-picker"
+
+function buildMessage(product: { name: string; description: string; price: string; image: string }) {
+  const siteUrl = typeof window !== "undefined" ? window.location.origin : ""
+  return `Ola, tenho interesse nesta coroa:\n\n` +
+    `*${product.name}*\n` +
+    `${product.description}\n` +
+    `Valor: ${product.price}\n\n` +
+    `Foto: ${siteUrl}${product.image}\n\n` +
+    `Gostaria de fazer o pedido!`
+}
+
+const products = [
+  {
+    name: "Coroa Luxo 1",
+    description: "Coroa de flores c/ rosas amarelas e calabrea.",
+    image: "/images/produto-1.jpg",
+    price: "R$ 380,00",
+  },
+  {
+    name: "Coroa Premium 2",
+    description: "Coroa de flores com diversas rosas vermelhas e flores do campo.",
+    image: "/images/produto-2.jpg",
+    price: "R$ 999,00",
+  },
+  {
+    name: "Coroa Classica 3",
+    description: "Coroa com flores do campo branca e amarela.",
+    image: "/images/produto-3.jpg",
+    price: "R$ 310,00",
+  },
+  {
+    name: "Coroa Luxo 4",
+    description: "Coroa de flores branca e amarela c/ rosas cor de rosa clara.",
+    image: "/images/produto-4.jpg",
+    price: "R$ 380,00",
+  },
+  {
+    name: "Coroa Classica 5",
+    description: "Coroa de flores do campo branca e azul.",
+    image: "/images/produto-5.jpg",
+    price: "R$ 310,00",
+  },
+  {
+    name: "Coroa Luxo 6",
+    description: "Coroa de flores branca com rosas branca.",
+    image: "/images/produto-6.jpg",
+    price: "R$ 380,00",
+  },
+]
+
+function Lightbox({
+  image,
+  name,
+  onClose,
+}: {
+  image: string
+  name: string
+  onClose: () => void
+}) {
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose()
+    }
+    document.body.style.overflow = "hidden"
+    window.addEventListener("keydown", handleKey)
+    return () => {
+      document.body.style.overflow = ""
+      window.removeEventListener("keydown", handleKey)
+    }
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/80 p-4 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Foto ampliada: ${name}`}
+    >
+      <button
+        onClick={onClose}
+        className="absolute right-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-card text-card-foreground shadow-lg transition-colors hover:bg-muted"
+        aria-label="Fechar foto"
+      >
+        <X className="h-5 w-5" />
+      </button>
+      <div
+        className="relative h-[85vh] w-full max-w-3xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Image
+          src={image}
+          alt={name}
+          fill
+          className="object-contain"
+          sizes="90vw"
+          priority
+        />
+      </div>
+    </div>
+  )
+}
+
+function ProductImage({
+  src,
+  alt,
+  onZoom,
+}: {
+  src: string
+  alt: string
+  onZoom: () => void
+}) {
+  const [hasError, setHasError] = useState(false)
+
+  if (hasError) {
+    return (
+      <div className="flex aspect-[4/3] w-full items-center justify-center bg-muted">
+        <div className="flex flex-col items-center gap-2 text-muted-foreground">
+          <ImageIcon className="h-10 w-10" />
+          <span className="text-xs">Foto em breve</span>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onZoom}
+      className="group/img relative block w-full cursor-pointer overflow-hidden aspect-[4/3]"
+      aria-label={`Ampliar foto: ${alt}`}
+    >
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-cover transition-transform duration-500 group-hover/img:scale-105"
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        onError={() => setHasError(true)}
+      />
+      <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 transition-colors group-hover/img:bg-foreground/20">
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-card/90 text-card-foreground opacity-0 shadow transition-opacity group-hover/img:opacity-100">
+          <ZoomIn className="h-5 w-5" />
+        </span>
+      </div>
+    </button>
+  )
+}
+
+export function PriceCatalog() {
+  const [lightbox, setLightbox] = useState<{ image: string; name: string } | null>(null)
+  const [pickerMessage, setPickerMessage] = useState<string | null>(null)
+
+  const openLightbox = useCallback((image: string, name: string) => {
+    setLightbox({ image, name })
+  }, [])
+
+  const closeLightbox = useCallback(() => {
+    setLightbox(null)
+  }, [])
+
+  return (
+    <>
+      <section
+        id="precos"
+        className="bg-background py-16 sm:py-24"
+        aria-labelledby="precos-heading"
+      >
+        <div className="mx-auto max-w-7xl px-4">
+          {/* Section header */}
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="mb-4 flex items-center justify-center gap-3">
+              <div className="h-px w-10 bg-accent" aria-hidden="true" />
+              <span className="text-xs font-bold uppercase tracking-widest text-accent">
+                Tabela de Precos
+              </span>
+              <div className="h-px w-10 bg-accent" aria-hidden="true" />
+            </div>
+            <h2
+              id="precos-heading"
+              className="font-serif text-2xl font-bold text-foreground sm:text-3xl lg:text-4xl text-balance"
+            >
+              Nossos Produtos e Precos
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+              Confira nossos arranjos e valores. Entre em contato para personalizar seu pedido.
+            </p>
+          </div>
+
+          {/* Products grid */}
+          <div className="mt-14">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {products.map((item) => (
+                <article
+                  key={item.name}
+                  className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-shadow hover:shadow-lg"
+                >
+                  <ProductImage
+                    src={item.image}
+                    alt={item.name}
+                    onZoom={() => openLightbox(item.image, item.name)}
+                  />
+                  <div className="flex flex-1 flex-col p-6">
+                    <h4 className="font-serif text-lg font-bold text-card-foreground">
+                      {item.name}
+                    </h4>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {item.description}
+                    </p>
+                    <div className="mt-4 flex items-center gap-2">
+                      <span className="font-serif text-2xl font-bold text-accent">
+                        {item.price}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setPickerMessage(buildMessage(item))}
+                      className="mt-4 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+                    >
+                      Pedir via WhatsApp
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA below products */}
+          <div className="mt-14 rounded-lg border border-accent/30 bg-accent/5 p-8 text-center">
+            <p className="font-serif text-lg font-bold text-foreground sm:text-xl">
+              Temos muitos outros modelos de coroas de flores!
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Para ver mais opcoes, tamanhos e personalizacoes, entre em contato pelo nosso WhatsApp.
+            </p>
+            <a
+              href="https://wa.me/5592985834285?text=Ol%C3%A1%2C%20gostaria%20de%20ver%20mais%20modelos%20de%20coroas%20de%20flores"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-flex items-center gap-2 rounded-md bg-primary px-8 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+              </svg>
+              Ver mais modelos no WhatsApp
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {lightbox && (
+        <Lightbox image={lightbox.image} name={lightbox.name} onClose={closeLightbox} />
+      )}
+
+      {pickerMessage && (
+        <WhatsAppPicker message={pickerMessage} onClose={() => setPickerMessage(null)} />
+      )}
+    </>
+  )
+}
