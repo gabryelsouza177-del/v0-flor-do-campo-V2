@@ -32,7 +32,7 @@ const products = [
     name: "Coroa Classica 3",
     description: "Coroa com flores do campo branca e amarela.",
     image: "/images/produto-3.jpg",
-    price: "R$ 310,00",
+    price: "R$ 350,00",
   },
   {
     name: "Coroa Luxo 4",
@@ -44,7 +44,7 @@ const products = [
     name: "Coroa Classica 5",
     description: "Coroa de flores do campo branca e azul.",
     image: "/images/produto-5.jpg",
-    price: "R$ 310,00",
+    price: "R$ 350,00",
   },
   {
     name: "Coroa Luxo 6",
